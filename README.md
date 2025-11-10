@@ -18,4 +18,5 @@ DataSense is an intelligent web-based system that allows non-technical users to 
 cd datasense
 
 # Install dependencies
+
 pip install -r requirements.txt
