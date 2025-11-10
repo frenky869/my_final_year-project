@@ -1,15 +1,13 @@
-# Set matplotlib backend before importing pyplot
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
-
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
 import os
-import sys
 from utils.config import API_KEY
+
+
 
 # Page configuration
 st.set_page_config(
@@ -266,4 +264,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
