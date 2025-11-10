@@ -1,0 +1,9 @@
+Name,Department,Age,Salary,Experience,Performance
+John Smith,Engineering,32,85000,5,4.2
+Sarah Johnson,Marketing,28,65000,3,3.8
+Mike Brown,Engineering,35,95000,8,4.5
+Emily Davis,Sales,26,60000,2,3.9
+David Wilson,Engineering,40,110000,12,4.7
+Lisa Miller,Marketing,30,70000,4,4.1
+James Taylor,Sales,29,62000,3,3.7
+Jennifer Lee,Engineering,33,90000,6,4.3

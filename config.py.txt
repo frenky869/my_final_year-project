@@ -1,0 +1,15 @@
+"""
+Configuration settings for DataSense
+"""
+
+# OpenAI API Key - Replace with your actual API key
+# You can get one from: https://platform.openai.com/api-keys
+API_KEY = "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"
+
+# Alternative: Set environment variable
+# import os
+# API_KEY = os.getenv('OPENAI_API_KEY', 'your-default-key-here')
+
+# Application settings
+MAX_FILE_SIZE = 200  # MB
+SUPPORTED_FORMATS = ['.csv', '.xlsx', '.xls']

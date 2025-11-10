@@ -1,0 +1,13 @@
+Date,Product,Category,Region,Sales,Units
+2024-01-01,Product A,Electronics,North,15000,15
+2024-01-01,Product B,Furniture,South,8000,8
+2024-01-02,Product C,Electronics,East,12000,12
+2024-01-02,Product D,Furniture,West,9000,9
+2024-01-03,Product A,Electronics,North,16000,16
+2024-01-03,Product B,Furniture,South,8500,8
+2024-01-04,Product C,Electronics,East,13000,13
+2024-01-04,Product D,Furniture,West,9500,9
+2024-02-01,Product A,Electronics,North,17000,17
+2024-02-01,Product B,Furniture,South,9000,9
+2024-02-02,Product C,Electronics,East,14000,14
+2024-02-02,Product D,Furniture,West,10000,10
