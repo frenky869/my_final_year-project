@@ -1,13 +1,9 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
 import os
 from utils.config import API_KEY
-
-
 
 # Page configuration
 st.set_page_config(
@@ -43,17 +39,14 @@ st.markdown("""
         border-radius: 10px;
         margin: 10px 0;
     }
+    .error-box {
+        background-color: #f8d7da;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-def initialize_llm():
-    """Initialize the OpenAI LLM with API key"""
-    try:
-        llm = OpenAI(api_token=API_KEY)
-        return llm
-    except Exception as e:
-        st.error(f"Error initializing AI model: {str(e)}")
-        return None
 
 def load_data(uploaded_file):
     """Load data from uploaded CSV or Excel file"""
@@ -97,6 +90,14 @@ def display_data_overview(df):
     })
     st.dataframe(col_info, use_container_width=True)
 
+def safe_chat(smart_df, question):
+    """Safely handle chat responses and convert to Streamlit components"""
+    try:
+        response = smart_df.chat(question)
+        return response
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 def main():
     # Header
     st.markdown('<div class="main-header">📊 DataSense</div>', unsafe_allow_html=True)
@@ -107,7 +108,7 @@ def main():
     with st.sidebar:
         st.header("⚙️ Configuration")
         
-        # API Key input (alternative to config file)
+        # API Key input
         api_key = st.text_input("OpenAI API Key", type="password", 
                                value=API_KEY if API_KEY else "",
                                help="Get your API key from https://platform.openai.com/api-keys")
@@ -126,12 +127,20 @@ def main():
         
         st.header("💡 Example Questions")
         st.markdown("""
-        - "Show me sales trends by month"
-        - "Create a bar chart of top 10 products"
-        - "What is the average salary by department?"
-        - "Plot the correlation between age and salary"
-        - "Show total revenue by category"
-        - "What are the top 5 performing regions?"
+        - **Summary Questions:**
+          - "Show basic statistics"
+          - "What are the data types?"
+          - "Show missing values"
+        
+        - **Analysis Questions:**
+          - "What is the average of [column]?"
+          - "Show top 10 [category]"
+          - "Group by [column] and calculate average"
+        
+        - **Data Questions:**
+          - "Filter where [column] > [value]"
+          - "Sort by [column] descending"
+          - "Show unique values in [column]"
         """)
     
     # Main content area
@@ -142,80 +151,106 @@ def main():
             display_data_overview(df)
             
             # Initialize LLM and SmartDataframe
-            llm = OpenAI(api_token=api_key)
-            smart_df = SmartDataframe(df, config={"llm": llm})
-            
-            st.markdown("---")
-            st.markdown('<div class="sub-header">💬 Ask Questions About Your Data</div>', unsafe_allow_html=True)
-            
-            # Chat interface
-            user_question = st.text_area(
-                "Enter your question in plain English:",
-                placeholder="e.g., 'Show me the total sales by month as a line chart'",
-                height=100
-            )
-            
-            if st.button("Analyze Data", type="primary"):
-                if user_question:
-                    with st.spinner("Analyzing your data... This may take a few seconds."):
+            try:
+                llm = OpenAI(api_token=api_key)
+                smart_df = SmartDataframe(df, config={"llm": llm, "enable_cache": False})
+                
+                st.markdown("---")
+                st.markdown('<div class="sub-header">💬 Ask Questions About Your Data</div>', unsafe_allow_html=True)
+                
+                # Chat interface
+                user_question = st.text_area(
+                    "Enter your question in plain English:",
+                    placeholder="e.g., 'What is the average age?', 'Show top 5 products by sales', 'Filter records where salary > 50000'",
+                    height=100
+                )
+                
+                col1, col2 = st.columns([1, 4])
+                with col1:
+                    analyze_btn = st.button("Analyze Data", type="primary", use_container_width=True)
+                with col2:
+                    clear_btn = st.button("Clear Results", use_container_width=True)
+                
+                if analyze_btn and user_question:
+                    with st.spinner("🤔 Analyzing your data... This may take a few seconds."):
                         try:
                             # Get response from PandasAI
-                            response = smart_df.chat(user_question)
+                            response = safe_chat(smart_df, user_question)
                             
                             # Display response
                             st.markdown("### 📈 Analysis Results")
                             
                             if response is not None:
-                                # Check the type of response and display appropriately
                                 if isinstance(response, (pd.DataFrame, pd.Series)):
                                     st.write("**Data Table:**")
                                     st.dataframe(response, use_container_width=True)
-                                elif hasattr(response, 'figure') and response.figure is not None:
-                                    # It's a plot
-                                    st.pyplot(response.figure)
-                                elif isinstance(response, (int, float, str)):
-                                    st.markdown(f'<div class="success-box"><h4>Answer:</h4><p style="font-size: 1.2rem;">{response}</p></div>', 
-                                                unsafe_allow_html=True)
+                                    
+                                    # Auto-create basic charts for DataFrames
+                                    if isinstance(response, pd.DataFrame) and len(response.columns) >= 2:
+                                        try:
+                                            # Try to create a simple chart if we have numeric data
+                                            numeric_cols = response.select_dtypes(include=['number']).columns
+                                            if len(numeric_cols) >= 1:
+                                                st.write("**Quick Chart:**")
+                                                if len(numeric_cols) == 1:
+                                                    st.bar_chart(response[numeric_cols[0]])
+                                                else:
+                                                    st.line_chart(response[numeric_cols].set_index(response.index))
+                                        except:
+                                            pass  # Skip chart if it fails
+                                    
+                                elif isinstance(response, (int, float)):
+                                    st.markdown(f'''
+                                    <div class="success-box">
+                                        <h4>📊 Result:</h4>
+                                        <p style="font-size: 2rem; font-weight: bold; text-align: center;">{response:,.2f}</p>
+                                    </div>
+                                    ''', unsafe_allow_html=True)
+                                elif isinstance(response, str):
+                                    if response.startswith("Error:"):
+                                        st.markdown(f'<div class="error-box"><h4>❌ Error:</h4><p>{response}</p></div>', unsafe_allow_html=True)
+                                    else:
+                                        st.markdown(f'<div class="success-box"><h4>💡 Answer:</h4><p style="font-size: 1.2rem;">{response}</p></div>', unsafe_allow_html=True)
                                 else:
+                                    st.write("**Analysis Output:**")
                                     st.write(response)
                             else:
                                 st.info("The analysis was completed but no specific output was returned.")
                                 
                         except Exception as e:
                             st.error(f"Error during analysis: {str(e)}")
-                            st.info("Try rephrasing your question or check if your data has the required columns.")
-                else:
-                    st.warning("Please enter a question to analyze your data.")
+                            st.info("💡 Try rephrasing your question or check if your data has the required columns.")
+                
+                # Quick analysis buttons
+                st.markdown("---")
+                st.markdown("### 🚀 Quick Analysis")
+                
+                quick_col1, quick_col2, quick_col3 = st.columns(3)
+                
+                quick_actions = [
+                    ("📊 Basic Stats", "Show basic statistics for numerical columns"),
+                    ("🔍 Data Info", "Show data types and missing values"),
+                    ("📈 Top Values", "Show top 10 most frequent values for each categorical column")
+                ]
+                
+                for i, (icon, question) in enumerate(quick_actions):
+                    col = [quick_col1, quick_col2, quick_col3][i]
+                    if col.button(icon, key=f"quick_{i}", use_container_width=True):
+                        with st.spinner("Generating analysis..."):
+                            try:
+                                response = safe_chat(smart_df, question)
+                                st.markdown(f"### {icon} Results for: '{question}'")
+                                if response is not None:
+                                    if isinstance(response, (pd.DataFrame, pd.Series)):
+                                        st.dataframe(response, use_container_width=True)
+                                    else:
+                                        st.write(response)
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
             
-            # Quick analysis suggestions
-            st.markdown("---")
-            st.markdown("### 🚀 Quick Analysis Suggestions")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            quick_questions = [
-                "Show basic statistics for numerical columns",
-                "Create a correlation heatmap",
-                "Show the distribution of categorical columns",
-                "Display missing values summary"
-            ]
-            
-            for i, question in enumerate(quick_questions):
-                col = [col1, col2, col3][i % 3]
-                if col.button(question, key=f"quick_{i}"):
-                    with st.spinner("Generating analysis..."):
-                        try:
-                            response = smart_df.chat(question)
-                            st.markdown(f"### Results for: '{question}'")
-                            if response is not None:
-                                if isinstance(response, (pd.DataFrame, pd.Series)):
-                                    st.dataframe(response, use_container_width=True)
-                                elif hasattr(response, 'figure') and response.figure is not None:
-                                    st.pyplot(response.figure)
-                                else:
-                                    st.write(response)
-                        except Exception as e:
-                            st.error(f"Error: {str(e)}")
+            except Exception as e:
+                st.error(f"Error initializing AI model: {str(e)}")
+                st.info("Please check your OpenAI API key and try again.")
     
     else:
         # Welcome screen when no file is uploaded
@@ -234,23 +269,23 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("### 📈 Visualizations")
+            st.markdown("### 📈 Analysis Types")
             st.write("""
-            - Bar charts
-            - Line graphs  
-            - Pie charts
-            - Scatter plots
-            - Histograms
+            - Summary statistics
+            - Data filtering
+            - Group comparisons
+            - Trend analysis
+            - Pattern detection
             """)
             
         with col2:
-            st.markdown("### 🔍 Analysis")
+            st.markdown("### 🔍 Data Operations")
             st.write("""
-            - Summary statistics
-            - Trend analysis
+            - Data type analysis
+            - Missing values detection
+            - Unique value counts
             - Correlation studies
-            - Group comparisons
-            - Pattern detection
+            - Data validation
             """)
             
         with col3:
@@ -264,5 +299,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
