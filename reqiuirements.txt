@@ -1,11 +1,13 @@
 streamlit>=1.28.2
 pandas>=2.1.3
 openai>=1.3.7
-pandasai>=2.0.4
+pandasai==2.0.48
 numpy>=1.24.3
 matplotlib
 seaborn
 openpyxl
+
+
 
 
 
