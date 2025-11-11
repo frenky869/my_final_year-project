@@ -3,7 +3,9 @@ import pandas as pd
 # IMPORTANT: Use the core pandasai components for clarity
 # The error means the environment can't find this library.
 # We will fix this by providing the correct requirements below.
-from pandasai import SmartDataframe
+
+from pandasai.smart_dataframe import SmartDataframe
+
 from pandasai.llm import OpenAI 
 import os 
 # We remove the import 'from utils.config import API_KEY' as that file does not exist here.
@@ -237,3 +239,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
