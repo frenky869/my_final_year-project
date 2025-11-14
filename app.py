@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import os
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # Page configuration
 st.set_page_config(
@@ -12,6 +9,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Try to import Plotly with fallback
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    st.warning("📊 Plotly is not installed. Some visualizations will be limited.")
 
 # Custom CSS for modern styling
 st.markdown("""
@@ -90,30 +96,6 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
-    
-    /* Sidebar styling */
-    .sidebar .sidebar-content {
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-    }
-    
-    /* File uploader styling */
-    .stFileUploader {
-        border: 2px dashed #667eea;
-        border-radius: 10px;
-        padding: 20px;
-    }
-    
-    /* Text input styling */
-    .stTextArea textarea {
-        border-radius: 10px;
-        border: 2px solid #e9ecef;
-        padding: 15px;
-    }
-    
-    /* Progress and spinner */
-    .stSpinner {
-        color: #667eea;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -159,34 +141,42 @@ def display_data_overview(df):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown('<div class="metric-card">'
-                   '<h3>📊</h3>'
-                   f'<h2 style="color: #667eea; margin: 10px 0;">{df.shape[0]:,}</h2>'
-                   '<p>Total Rows</p>'
-                   '</div>', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div class="metric-card">
+            <h3>📊</h3>
+            <h2 style="color: #667eea; margin: 10px 0;">{df.shape[0]:,}</h2>
+            <p>Total Rows</p>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="metric-card">'
-                   '<h3>🔢</h3>'
-                   f'<h2 style="color: #667eea; margin: 10px 0;">{df.shape[1]}</h2>'
-                   '<p>Total Columns</p>'
-                   '</div>', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div class="metric-card">
+            <h3>🔢</h3>
+            <h2 style="color: #667eea; margin: 10px 0;">{df.shape[1]}</h2>
+            <p>Total Columns</p>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col3:
         memory_usage = df.memory_usage(deep=True).sum() / 1024**2
-        st.markdown('<div class="metric-card">'
-                   '<h3>💾</h3>'
-                   f'<h2 style="color: #667eea; margin: 10px 0;">{memory_usage:.2f}</h2>'
-                   '<p>Memory (MB)</p>'
-                   '</div>', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div class="metric-card">
+            <h3>💾</h3>
+            <h2 style="color: #667eea; margin: 10px 0;">{memory_usage:.2f}</h2>
+            <p>Memory (MB)</p>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col4:
         null_count = df.isnull().sum().sum()
-        st.markdown('<div class="metric-card">'
-                   '<h3>⚠️</h3>'
-                   f'<h2 style="color: #667eea; margin: 10px 0;">{null_count}</h2>'
-                   '<p>Missing Values</p>'
-                   '</div>', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div class="metric-card">
+            <h3>⚠️</h3>
+            <h2 style="color: #667eea; margin: 10px 0;">{null_count}</h2>
+            <p>Missing Values</p>
+        </div>
+        ''', unsafe_allow_html=True)
     
     # Data preview with tabs
     tab1, tab2, tab3 = st.tabs(["📊 Data Preview", "🔍 Column Info", "📈 Quick Stats"])
@@ -217,6 +207,17 @@ def create_quick_visualizations(df):
     """Create automatic visualizations for the data"""
     st.markdown("### 🎯 Quick Visualizations")
     
+    if not PLOTLY_AVAILABLE:
+        st.warning("""
+        **Plotly not available** - Install plotly for enhanced visualizations:
+        ```bash
+        pip install plotly
+        ```
+        For now, using basic Streamlit charts...
+        """)
+        create_basic_visualizations(df)
+        return
+    
     numeric_cols = df.select_dtypes(include=['number']).columns
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns
     
@@ -225,27 +226,60 @@ def create_quick_visualizations(df):
         
         with col1:
             if len(numeric_cols) >= 1:
-                fig = px.histogram(df, x=numeric_cols[0], 
-                                 title=f"Distribution of {numeric_cols[0]}",
-                                 color_discrete_sequence=['#667eea'])
-                st.plotly_chart(fig, use_container_width=True)
+                try:
+                    fig = px.histogram(df, x=numeric_cols[0], 
+                                     title=f"Distribution of {numeric_cols[0]}",
+                                     color_discrete_sequence=['#667eea'])
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Could not create histogram: {str(e)}")
         
         with col2:
             if len(numeric_cols) >= 2:
-                fig = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1],
-                               title=f"{numeric_cols[0]} vs {numeric_cols[1]}",
-                               color_discrete_sequence=['#764ba2'])
-                st.plotly_chart(fig, use_container_width=True)
+                try:
+                    fig = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1],
+                                   title=f"{numeric_cols[0]} vs {numeric_cols[1]}",
+                                   color_discrete_sequence=['#764ba2'])
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Could not create scatter plot: {str(e)}")
     
     if len(categorical_cols) > 0 and len(numeric_cols) > 0:
-        fig = px.box(df, x=categorical_cols[0], y=numeric_cols[0],
-                   title=f"{numeric_cols[0]} by {categorical_cols[0]}",
-                   color_discrete_sequence=['#f093fb'])
-        st.plotly_chart(fig, use_container_width=True)
+        try:
+            fig = px.box(df, x=categorical_cols[0], y=numeric_cols[0],
+                       title=f"{numeric_cols[0]} by {categorical_cols[0]}",
+                       color_discrete_sequence=['#f093fb'])
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"Could not create box plot: {str(e)}")
+
+def create_basic_visualizations(df):
+    """Fallback visualizations using Streamlit's built-in charts"""
+    numeric_cols = df.select_dtypes(include=['number']).columns
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
+    
+    if len(numeric_cols) > 0:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if len(numeric_cols) >= 1:
+                st.write(f"**Histogram of {numeric_cols[0]}**")
+                st.bar_chart(df[numeric_cols[0]].value_counts())
+        
+        with col2:
+            if len(numeric_cols) >= 2:
+                st.write(f"**Line chart: {numeric_cols[0]} vs {numeric_cols[1]}**")
+                st.line_chart(df[[numeric_cols[0], numeric_cols[1]]].head(50))
+    
+    if len(categorical_cols) > 0 and len(numeric_cols) > 0:
+        st.write(f"**{numeric_cols[0]} by {categorical_cols[0]}**")
+        summary = df.groupby(categorical_cols[0])[numeric_cols[0]].mean()
+        st.bar_chart(summary)
 
 def analyze_with_pandasai(df, question, api_key):
     """Analyze data using PandasAI"""
     try:
+        # Import inside function to handle potential errors
         from pandasai import SmartDataframe
         from pandasai.llm import OpenAI
         
@@ -253,6 +287,8 @@ def analyze_with_pandasai(df, question, api_key):
         smart_df = SmartDataframe(df, config={"llm": llm, "enable_cache": False})
         response = smart_df.chat(question)
         return response
+    except ImportError:
+        return "Error: pandasai is not installed. Please install it using: pip install pandasai"
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -422,7 +458,7 @@ def main():
                 <h3>🤖 AI-Powered</h3>
                 <p>Ask questions in natural language and get intelligent insights, charts, and summaries.</p>
             </div>
-            """, unsafe_allow_html=True)
+            ""', unsafe_allow_html=True)
             
         with col3:
             st.markdown("""
