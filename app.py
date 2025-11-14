@@ -458,7 +458,7 @@ def main():
                 <h3>🤖 AI-Powered</h3>
                 <p>Ask questions in natural language and get intelligent insights, charts, and summaries.</p>
             </div>
-            ""', unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
             
         with col3:
             st.markdown("""
