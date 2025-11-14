@@ -17,11 +17,21 @@ try:
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
-    st.warning("📊 Plotly is not installed. Some visualizations will be limited.")
 
-# Custom CSS for modern styling
+# Custom CSS for modern dark theme styling
 st.markdown("""
 <style>
+    /* Main background styling */
+    .main {
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        color: #ffffff;
+    }
+    
+    /* Sidebar background */
+    .css-1d391kg, .css-1lcbmhc {
+        background: linear-gradient(180deg, #1e1e2e 0%, #2d2d44 100%);
+    }
+    
     /* Main styling */
     .main-header {
         font-size: 4rem;
@@ -35,7 +45,7 @@ st.markdown("""
     
     .sub-header {
         font-size: 1.8rem;
-        color: #2e86ab;
+        color: #a8d8ea;
         margin-bottom: 2rem;
         text-align: center;
         font-weight: 600;
@@ -43,25 +53,28 @@ st.markdown("""
     
     /* Card styling */
     .feature-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
         padding: 25px;
         border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        border-left: 5px solid #667eea;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         margin: 15px 0;
         transition: transform 0.3s ease;
+        color: #ffffff;
     }
     
     .feature-card:hover {
         transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.15);
     }
     
     .info-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 25px;
         border-radius: 15px;
         margin: 15px 0;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .success-card {
@@ -70,15 +83,17 @@ st.markdown("""
         padding: 20px;
         border-radius: 15px;
         margin: 10px 0;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .metric-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
-        border-top: 4px solid #667eea;
+        color: #ffffff;
     }
     
     /* Button styling */
@@ -95,17 +110,105 @@ st.markdown("""
     .stButton button:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    
+    /* Text input styling */
+    .stTextInput input, .stTextArea textarea {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+        border-radius: 10px;
+    }
+    
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+    
+    /* File uploader styling */
+    .stFileUploader {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 2px dashed rgba(102, 126, 234, 0.5) !important;
+        border-radius: 10px;
+        padding: 20px;
+        color: #ffffff;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox div div {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+    
+    /* Dataframe styling */
+    .dataframe {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Tab styling */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 10px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        color: #ffffff;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+    }
+    
+    /* Warning and info boxes */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+    
+    /* Sidebar text color */
+    .css-1d391kg, .css-1lcbmhc {
+        color: #ffffff !important;
+    }
+    
+    /* Make all text in sidebar readable */
+    .css-1d391kg p, .css-1lcbmhc p, .css-1d391kg label, .css-1lcbmhc label {
+        color: #ffffff !important;
+    }
+    
+    /* Make file uploader text readable */
+    .stFileUploader label {
+        color: #ffffff !important;
+    }
+    
+    /* Make metric values stand out */
+    .metric-card h2 {
+        color: #667eea !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    /* Make headers stand out */
+    h1, h2, h3, h4, h5, h6 {
+        color: #a8d8ea !important;
+    }
+    
+    /* Make regular text readable */
+    p, div, span {
+        color: #e6e6e6 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 def get_openai_api_key():
     """Retrieves API key from Streamlit secrets or sidebar input."""
-    # 1. Try Streamlit Secrets (Recommended for deployment)
     if "OPENAI_API_KEY" in st.secrets:
         return st.secrets["OPENAI_API_KEY"]
     
-    # 2. Use Sidebar Input (Fallback for local testing)
     with st.sidebar:
         st.markdown("### 🔑 API Configuration")
         api_key = st.text_input(
@@ -144,7 +247,7 @@ def display_data_overview(df):
         st.markdown(f'''
         <div class="metric-card">
             <h3>📊</h3>
-            <h2 style="color: #667eea; margin: 10px 0;">{df.shape[0]:,}</h2>
+            <h2 style="margin: 10px 0;">{df.shape[0]:,}</h2>
             <p>Total Rows</p>
         </div>
         ''', unsafe_allow_html=True)
@@ -153,7 +256,7 @@ def display_data_overview(df):
         st.markdown(f'''
         <div class="metric-card">
             <h3>🔢</h3>
-            <h2 style="color: #667eea; margin: 10px 0;">{df.shape[1]}</h2>
+            <h2 style="margin: 10px 0;">{df.shape[1]}</h2>
             <p>Total Columns</p>
         </div>
         ''', unsafe_allow_html=True)
@@ -163,7 +266,7 @@ def display_data_overview(df):
         st.markdown(f'''
         <div class="metric-card">
             <h3>💾</h3>
-            <h2 style="color: #667eea; margin: 10px 0;">{memory_usage:.2f}</h2>
+            <h2 style="margin: 10px 0;">{memory_usage:.2f}</h2>
             <p>Memory (MB)</p>
         </div>
         ''', unsafe_allow_html=True)
@@ -173,7 +276,7 @@ def display_data_overview(df):
         st.markdown(f'''
         <div class="metric-card">
             <h3>⚠️</h3>
-            <h2 style="color: #667eea; margin: 10px 0;">{null_count}</h2>
+            <h2 style="margin: 10px 0;">{null_count}</h2>
             <p>Missing Values</p>
         </div>
         ''', unsafe_allow_html=True)
@@ -230,6 +333,11 @@ def create_quick_visualizations(df):
                     fig = px.histogram(df, x=numeric_cols[0], 
                                      title=f"Distribution of {numeric_cols[0]}",
                                      color_discrete_sequence=['#667eea'])
+                    fig.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font_color='white'
+                    )
                     st.plotly_chart(fig, use_container_width=True)
                 except Exception as e:
                     st.error(f"Could not create histogram: {str(e)}")
@@ -240,6 +348,11 @@ def create_quick_visualizations(df):
                     fig = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1],
                                    title=f"{numeric_cols[0]} vs {numeric_cols[1]}",
                                    color_discrete_sequence=['#764ba2'])
+                    fig.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font_color='white'
+                    )
                     st.plotly_chart(fig, use_container_width=True)
                 except Exception as e:
                     st.error(f"Could not create scatter plot: {str(e)}")
@@ -249,6 +362,11 @@ def create_quick_visualizations(df):
             fig = px.box(df, x=categorical_cols[0], y=numeric_cols[0],
                        title=f"{numeric_cols[0]} by {categorical_cols[0]}",
                        color_discrete_sequence=['#f093fb'])
+            fig.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font_color='white'
+            )
             st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.error(f"Could not create box plot: {str(e)}")
@@ -279,7 +397,6 @@ def create_basic_visualizations(df):
 def analyze_with_pandasai(df, question, api_key):
     """Analyze data using PandasAI"""
     try:
-        # Import inside function to handle potential errors
         from pandasai import SmartDataframe
         from pandasai.llm import OpenAI
         
@@ -322,21 +439,21 @@ def main():
         
         st.markdown("### 💡 Example Questions")
         st.markdown("""
-        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;">
-        <b>📈 For Sales Data:</b><br>
-        • "Show monthly sales trends"<br>
-        • "Top 5 products by revenue"<br>
-        • "Sales by region pie chart"<br><br>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;">
+        <b style="color: #a8d8ea;">📈 For Sales Data:</b><br>
+        <span style="color: #e6e6e6;">• "Show monthly sales trends"</span><br>
+        <span style="color: #e6e6e6;">• "Top 5 products by revenue"</span><br>
+        <span style="color: #e6e6e6;">• "Sales by region pie chart"</span><br><br>
         
-        <b>👥 For HR Data:</b><br>
-        • "Average salary by department"<br>
-        • "Employee age distribution"<br>
-        • "Department headcount bar chart"<br><br>
+        <b style="color: #a8d8ea;">👥 For HR Data:</b><br>
+        <span style="color: #e6e6e6;">• "Average salary by department"</span><br>
+        <span style="color: #e6e6e6;">• "Employee age distribution"</span><br>
+        <span style="color: #e6e6e6;">• "Department headcount bar chart"</span><br><br>
         
-        <b>🔧 General Analysis:</b><br>
-        • "Show basic statistics"<br>
-        • "Find missing values"<br>
-        • "Correlation heatmap"
+        <b style="color: #a8d8ea;">🔧 General Analysis:</b><br>
+        <span style="color: #e6e6e6;">• "Show basic statistics"</span><br>
+        <span style="color: #e6e6e6;">• "Find missing values"</span><br>
+        <span style="color: #e6e6e6;">• "Correlation heatmap"</span>
         </div>
         """, unsafe_allow_html=True)
         
@@ -351,9 +468,9 @@ def main():
         
         for emoji, title, desc in features:
             st.markdown(f"""
-            <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 8px;">
-                <strong>{emoji} {title}</strong><br>
-                <small>{desc}</small>
+            <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <strong style="color: #a8d8ea;">{emoji} {title}</strong><br>
+                <small style="color: #e6e6e6;">{desc}</small>
             </div>
             """, unsafe_allow_html=True)
 
@@ -389,10 +506,8 @@ def main():
                 if analyze_btn and user_question:
                     with st.spinner("🔍 Analyzing your data with AI... This may take a few moments."):
                         try:
-                            # Get response from PandasAI
                             response = analyze_with_pandasai(df, user_question, api_key)
                             
-                            # Display response in a nice container
                             st.markdown("### 📊 Analysis Results")
                             
                             if response is not None:
@@ -416,16 +531,6 @@ def main():
                                 
                         except Exception as e:
                             st.error(f"An unexpected error occurred: {str(e)}")
-                            st.markdown("""
-                            <div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
-                                <strong>💡 Tips:</strong>
-                                <ul>
-                                    <li>Try rephrasing your question</li>
-                                    <li>Check that column names are correctly referenced</li>
-                                    <li>Make sure your question is specific and clear</li>
-                                </ul>
-                            </div>
-                            """, unsafe_allow_html=True)
                 elif analyze_btn and not user_question:
                     st.warning("Please enter a question to analyze.")
             else:
@@ -493,15 +598,6 @@ def main():
                 'Experience': [5, 3, 8, 4, 12]
             })
             st.dataframe(sample_employees, use_container_width=True)
-        
-        # Call to action
-        st.markdown("---")
-        st.markdown("""
-        <div style="text-align: center; padding: 30px;">
-            <h2>Ready to unlock insights from your data?</h2>
-            <p>Upload your file in the sidebar and start your analysis journey!</p>
-        </div>
-        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
