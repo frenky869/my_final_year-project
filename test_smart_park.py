@@ -4,13 +4,13 @@ Test script for Smart Park System
 Verifies core functionality
 """
 
-import json
 import sys
 from pathlib import Path
 import datetime
 
-# Add the project directory to path
-sys.path.insert(0, '/home/runner/work/my_final_year-project/my_final_year-project')
+# Add the project directory to path (use relative path)
+project_dir = Path(__file__).parent
+sys.path.insert(0, str(project_dir))
 
 def test_database_initialization():
     """Test database initialization"""

@@ -133,7 +133,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Database file path
-DB_PATH = Path("/home/runner/work/my_final_year-project/my_final_year-project/parking_data.json")
+DB_PATH = Path(__file__).parent / "parking_data.json"
 
 # Initialize database structure
 def init_database():
